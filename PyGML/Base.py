@@ -40,13 +40,13 @@ class GML(object):
         clientXml = tree.find('tag/client')
         if clientXml is None:
             clientXml = tree.find('tag/header/client')
-        self.__client.loadXml(clientXml)
+        self.__client._loadXml(clientXml)
         
         #load environment
         envXml = tree.find('tag/environment')
         if envXml is None:
             envXml = tree.find('tag/header/environment')
-        self.__env.loadXml(envXml)
+        self.__env._loadXml(envXml)
         
         #load strokes
         for stroke in tree.findall('tag/drawing/stroke'):
@@ -65,15 +65,15 @@ class GML(object):
         root = ElementTree.Element('GML')
         tag = ElementTree.SubElement(root, 'tag')
         
-        storeClient = self.client().shouldStore()
-        storeEnvironment = self.environment().shouldStore()
+        storeClient = self.client()._shouldStore()
+        storeEnvironment = self.environment()._shouldStore()
         
         if storeClient or storeEnvironment:
             header = ElementTree.SubElement(tag, 'header')
             if storeClient:
-                self.client().store(ElementTree.SubElement(header, 'client'))
+                self.client()._store(ElementTree.SubElement(header, 'client'))
             if storeEnvironment:
-                self.environment().store(ElementTree.SubElement(header, 'environment'))
+                self.environment()._store(ElementTree.SubElement(header, 'environment'))
                 
         if self.__strokes:
             drawing = ElementTree.SubElement(tag, 'drawing')
@@ -83,7 +83,7 @@ class GML(object):
                     stroke.set('isDrawing', 'false')
                 for pointData in strokeData.iterPoints():
                     point = ElementTree.SubElement(stroke, 'pt')
-                    pointData.store(point)
+                    pointData._store(point)
         
         _indent(root)         
         ElementTree.ElementTree(root).write(file)

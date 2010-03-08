@@ -20,7 +20,7 @@ class Stroke(object):
         '''Access the brush for the stroke'''
         return self.__brush
     
-    def setBrush(self, brush):
+    def setBrush(self, brush=None):
         '''Set the brush for the stroke'''
         self.__brush = brush
     
@@ -28,7 +28,7 @@ class Stroke(object):
         '''Get the value of isDrawing'''
         return self.__isDrawing
         
-    def setIsDrawing(self, value):
+    def setIsDrawing(self, value=True):
         '''Set the value for isDrawing'''
         self.__isDrawing = (value is True)
     

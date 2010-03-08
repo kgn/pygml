@@ -19,21 +19,21 @@ class _Header(object):
         if key in self._values:
             self._values[key] = value
     
-    def shouldStore(self):
+    def _shouldStore(self):
         '''Determin if there is anything to store'''
         for value in self._values.itervalues():
             if value:
                 return True
         return False
      
-    def store(self, xml):
+    def _store(self, xml):
         '''Store the data in the input parent xml node'''
         for key, value in self._values.iteritems():
             if value is None:
                 continue
             entry = ElementTree.SubElement(xml, key)
             if isinstance(value, MathBase):
-                value.store(entry)
+                value._store(entry)
             elif hasattr(value, '__iter__'):
                 entry.text = ','.join(value)
             else:
@@ -58,7 +58,7 @@ class Environment(_Header):
             'realScale':args.get('realScale', None),
         }
     
-    def loadXml(self, xml=None):
+    def _loadXml(self, xml=None):
         '''Load values from the xml'''
         if xml is None:
             return
@@ -89,7 +89,7 @@ class Client(_Header):
             'location':args.get('location', None),
         }
     
-    def loadXml(self, xml=None):
+    def _loadXml(self, xml=None):
         '''Load values from the xml'''
         if xml is None:
             return

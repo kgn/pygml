@@ -1,7 +1,7 @@
 from xml.etree import ElementTree
 
 class MathBase(object):
-    def store(self, xml):
+    def _store(self, xml):
         for key, value in self.data():
             if value is None:
                 continue
