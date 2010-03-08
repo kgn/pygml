@@ -41,18 +41,15 @@ class GML(object):
                         pointValues[pointKey] = float(pointValue.text)        
                 currentStroke.addPoint(**pointValues)
             self.__strokes.append(currentStroke)
+    
+    def save(self):
+        pass
             
     def client(self):
         return self.__client
-        
-    def setClient(self, key, value):
-        self.__client.set(key, value)
             
     def environment(self):
         return self.__env
-        
-    def setEnvironment(self, key, value):
-        self.__env.set(key, value)
         
     def iterStrokes(self):
         for stroke in self.__strokes:
