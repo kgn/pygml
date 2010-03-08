@@ -40,6 +40,7 @@ class _Header(object):
                 entry.text = str(value)
     
     def __str__(self):
+        #build a dictionary of items who are not None
         ppDict = {}
         for key, value in self._values.iteritems():
             if value:

@@ -18,7 +18,7 @@ class Stroke(object):
         '''Set the brush for the stroke'''
         self.__brush = brush
     
-    def addPoint(self, x=0.0, y=0.0, z=0.0, time=0.0):
+    def addPoint(self, x=0.0, y=0.0, z=None, time=None):
         '''Add a point to the stroke'''
         self.__points.append(Point(x, y, z, time))
         
