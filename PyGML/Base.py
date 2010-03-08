@@ -1,30 +1,48 @@
 # Conforms to the standard outlined at http://fffff.at/gml/
+# Some additional logic has been added due to differences in GML files
 
 from xml.etree import ElementTree
 from Header import *
 from Drawing import *
 
+__all__ = ['GML']
+
+def _indent(elem, level=0):
+    '''Pretty print the xml'''
+    i = '\n' + level*'    '
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + '    '
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            _indent(elem, level+1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
 class GML(object):
     def __init__(self, gml=None):
-        self.__client = None
-        self.__env = None
+        self.__client = Client()
+        self.__env = Environment()
         self.__strokes = []
         
         if gml:
             self.load(gml)
     
     def load(self, gml):
+        '''Load the gml from a file stream'''
         tree = ElementTree.parse(gml)
         
         #load client
-        self.__client = Client()
         clientXml = tree.find('tag/client')
         if clientXml is None:
             clientXml = tree.find('tag/header/client')
         self.__client.loadXml(clientXml)
         
         #load environment
-        self.__env = Environment()
         envXml = tree.find('tag/environment')
         if envXml is None:
             envXml = tree.find('tag/header/environment')
@@ -34,23 +52,54 @@ class GML(object):
         for stroke in tree.findall('tag/drawing/stroke'):
             currentStroke = Stroke()
             for point in stroke.findall('pt'):
-                pointValues = {'x':0.0, 'y':0.0, 'z':0.0, 'time':0.0}
+                pointValues = {'x':0.0, 'y':0.0, 'z':None, 'time':None}
                 for pointKey in pointValues.iterkeys():
                     pointValue = point.find(pointKey)
                     if pointValue is not None:
                         pointValues[pointKey] = float(pointValue.text)        
                 currentStroke.addPoint(**pointValues)
-            self.__strokes.append(currentStroke)
+            self.addStroke(currentStroke)
     
-    def save(self):
-        pass
+    def save(self, file):
+        '''Save the GML to a file'''
+        root = ElementTree.Element('GML')
+        tag = ElementTree.SubElement(root, 'tag')
+        
+        storeClient = self.client().shouldStore()
+        storeEnvironment = self.environment().shouldStore()
+        
+        if storeClient or storeEnvironment:
+            header = ElementTree.SubElement(tag, 'header')
+            if storeClient:
+                self.client().store(ElementTree.SubElement(header, 'client'))
+            if storeEnvironment:
+                self.environment().store(ElementTree.SubElement(header, 'environment'))
+                
+        if self.__strokes:
+            drawing = ElementTree.SubElement(tag, 'drawing')
+            for strokeData in self.iterStrokes():
+                stroke = ElementTree.SubElement(drawing, 'stroke')
+                for pointData in strokeData.iterPoints():
+                    point = ElementTree.SubElement(stroke, 'pt')
+                    pointData.store(point)
+        
+        _indent(root)         
+        ElementTree.ElementTree(root).write(file)
             
     def client(self):
+        '''Access the client'''
         return self.__client
             
     def environment(self):
+        '''Access the environment'''
         return self.__env
-        
+    
+    def addStroke(self, stroke):
+        '''Add a stroke, this must be a PyGML.Stroke object'''
+        #TODO: type check incoming stroke
+        self.__strokes.append(stroke)
+    
     def iterStrokes(self):
+        '''Iterate over all the strokes'''
         for stroke in self.__strokes:
             yield stroke
