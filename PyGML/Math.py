@@ -2,7 +2,7 @@ from xml.etree import ElementTree
 
 class MathBase(object):
     def _store(self, xml):
-        for key, value in self.data():
+        for key, value in self._data():
             if value is None:
                 continue
             entry = ElementTree.SubElement(xml, key)
@@ -13,7 +13,7 @@ class Location(MathBase):
         self.lon = lon
         self.lat = lat
      
-    def data(self):
+    def _data(self):
         return (
             ('lon',self.lon),
             ('lat',self.lat),
@@ -27,7 +27,7 @@ class Vect2d(MathBase):
         self.x = x
         self.y = y
      
-    def data(self):
+    def _data(self):
         return (
             ('x',self.x),
             ('y',self.y),
@@ -42,7 +42,7 @@ class Vect3d(MathBase):
         self.y = y
         self.z = z
     
-    def data(self):
+    def _data(self):
         return (
             ('x',self.x),
             ('y',self.y),
@@ -60,7 +60,7 @@ class Color(MathBase):
         self.b = b
         self.z = a
         
-    def data(self):
+    def _data(self):
         return (
             ('r',self.r),
             ('g',self.g),
@@ -79,7 +79,7 @@ class Point(MathBase):
         self.z = z
         self.time = time
         
-    def data(self):
+    def _data(self):
         data = [
             ('x',self.x),
             ('y',self.y),
