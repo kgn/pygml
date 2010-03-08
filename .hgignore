@@ -1,0 +1,10 @@
+syntax: glob
+*.orig
+.DS_Store
+dist
+MANIFEST
+.svn
+*.pyc
+
+syntax: regexp
+.*\#.*\#$
