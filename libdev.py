@@ -19,6 +19,7 @@ def createGML():
     gml.environment().set('screenBounds', PyGML.Vect2d(480, 320))
     
     stroke = PyGML.Stroke()
+    #stroke.setIsDrawing(False)
     stroke.addPoint(0.0, 0.0)
     stroke.addPoint(0.0, 1.0)
     stroke.addPoint(1.0, 1.0)
@@ -29,8 +30,8 @@ def createGML():
     return gml
             
 if __name__ == '__main__':
-    gml = readFile()
-    #gml = createGML()
+    #gml = readFile()
+    gml = createGML()
     
     print gml.client()
     #print gml.client().get('name')

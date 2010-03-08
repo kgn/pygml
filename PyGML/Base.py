@@ -79,6 +79,8 @@ class GML(object):
             drawing = ElementTree.SubElement(tag, 'drawing')
             for strokeData in self.iterStrokes():
                 stroke = ElementTree.SubElement(drawing, 'stroke')
+                if strokeData.isDrawing() is False:
+                    stroke.set('isDrawing', 'false')
                 for pointData in strokeData.iterPoints():
                     point = ElementTree.SubElement(stroke, 'pt')
                     pointData.store(point)
