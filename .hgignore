@@ -5,6 +5,7 @@ dist
 MANIFEST
 .svn
 *.pyc
+build
 
 syntax: regexp
 .*\#.*\#$
