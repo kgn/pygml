@@ -25,13 +25,21 @@ def createGML():
     stroke.addPoint(1.0, 1.0)
     stroke.addPoint(1.0, 0.0)
     stroke.addPoint(0.0, 0.0)
+    
+    brush = PyGML.Brush()
+    brush.set('color', PyGML.Color(255, 255, 255))
+    brush.set('width', 10)
+    stroke.setBrush(brush)
+    
+    stroke.info().set('curved', False)
+    
     gml.addStroke(stroke)
     
     return gml
             
 if __name__ == '__main__':
-    #gml = readFile()
-    gml = createGML()
+    gml = readFile()
+    #gml = createGML()
     
     print gml.client()
     #print gml.client().get('name')

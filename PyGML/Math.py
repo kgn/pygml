@@ -54,22 +54,30 @@ class Vect3d(MathBase):
 
 class Color(MathBase):
     '''0 to 255 color space'''
-    def __init__(self, r=0, g=0, b=0, a=0):
+    def __init__(self, r=0, g=0, b=0, a=None):
         self.r = r
         self.g = g
         self.b = b
-        self.z = a
+        self.a = a
         
     def _data(self):
-        return (
+        data = [
             ('r',self.r),
             ('g',self.g),
             ('b',self.b),
-            ('a',self.a),
-        )
+        ]
+        if self.a:
+            data.append(('a',self.a))
+        return data
         
     def __str__(self):
-        return '<%s(%d, %d, %d, %d)>' % (self.__class__.__name__, self.red, self.green, self.blue, self.alpha)
+        values = [self.r, self.g, self.b]
+        if self.a:
+            values.append(self.a)
+        returnStr = '<%s(' % self.__class__.__name__
+        for value in values:
+            returnStr += '%d, ' % value
+        return returnStr.rstrip(', ')+')>'
 
 class Point(MathBase):
     #TODO: time can also be represented by the tag <t>
