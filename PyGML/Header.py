@@ -5,9 +5,14 @@ from Math import *
 __all__ = ['Client', 'Environment']
 
 class _Header(object):
+    def __init__(self, **args):
+        self._values = {}
+        for key, value in args.iteritems():
+            self.set(key, value)
+        
     def iterKeys(self):
         '''Iterate the keys'''
-        for key in self._values.iterkeys():
+        for key in self._keys:
             yield key
        
     def get(self, key):
@@ -16,19 +21,20 @@ class _Header(object):
         
     def set(self, key, value):
         '''Set a value by it's key'''
-        if key in self._values:
+        if key in self._keys:
             self._values[key] = value
     
     def _shouldStore(self):
         '''Determin if there is anything to store'''
-        for value in self._values.itervalues():
-            if value:
+        for key in self.iterKeys():
+            if self.get(key):
                 return True
         return False
      
     def _store(self, xml):
         '''Store the data in the input parent xml node'''
-        for key, value in self._values.iteritems():
+        for key in self.iterKeys():
+            value = self.get(key)
             if value is None:
                 continue
             entry = ElementTree.SubElement(xml, key)
@@ -42,21 +48,23 @@ class _Header(object):
     def __str__(self):
         #build a dictionary of items who are not None
         ppDict = {}
-        for key, value in self._values.iteritems():
+        for key in self.iterKeys():
+            value = self.get(key)
             if value:
                 ppDict[key] = str(value)
         return '<%s(%s)>' % (self.__class__.__name__, ppDict)
 
 class Environment(_Header):
     def __init__(self, **args):
-        self._values = {
-            'offset':args.get('name', None),
-            'rotation':args.get('rotation', None),
-            'up':args.get('up', None),
-            'screenBounds':args.get('screenBounds', None),
-            'origin':args.get('origin', None),
-            'realScale':args.get('realScale', None),
-        }
+        self._keys = (
+            'offset',
+            'rotation',
+            'up',
+            'screenBounds',
+            'origin',
+            'realScale',
+        )
+        _Header.__init__(self, **args)
     
     def _loadXml(self, xml=None):
         '''Load values from the xml'''
@@ -77,17 +85,18 @@ class Environment(_Header):
 
 class Client(_Header):
     def __init__(self, **args):
-        self._values = {
-            'name':args.get('name', None),
-            'version':args.get('version', None),
-            'username':args.get('username', None),
-            'permalink':args.get('permalink', None),
-            'keywords':args.get('keywords', None),
-            'uniqueKey':args.get('uniqueKey', None),
-            'ip':args.get('ip', None),
-            'time':args.get('time', None),
-            'location':args.get('location', None),
-        }
+        self._keys = (
+            'name',
+            'version',
+            'username',
+            'permalink',
+            'keywords',
+            'uniqueKey',
+            'ip',
+            'time',
+            'location',
+        )
+        _Header.__init__(self, **args)
     
     def _loadXml(self, xml=None):
         '''Load values from the xml'''
@@ -115,9 +124,9 @@ class Client(_Header):
      
     def addKeyword(self, keyword):
         '''Add a keyword'''
-        if self._values['keywords'] is None:
-            self._values['keywords'] = set()
-        self._values['keywords'].add(keyword)
+        if self.get('keywords') is None:
+            self.set('keywords', set())
+        self.get('keywords').add(keyword)
          
     def addKeywords(self, *keywords):
         '''Add a list of keywords'''
@@ -126,4 +135,4 @@ class Client(_Header):
             
     def setNowTime(self):
         '''Set the time to the current time'''
-        self._values['time'] = time.time()
+        self.set('time', time.time())
