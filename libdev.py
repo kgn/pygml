@@ -31,7 +31,7 @@ def createGML():
     brush.set('width', 10)
     stroke.setBrush(brush)
     
-    stroke.info().set('curved', False)
+    #stroke.info().set('curved', False)
     
     gml.addStroke(stroke)
     
