@@ -108,3 +108,85 @@ class Point(MathBase):
         for value in values:
             returnStr += '%.2f, ' % value
         return returnStr.rstrip(', ')+')>'
+
+#functions
+def CrossProduct(U, V):
+    '''Get the cross product of two vectors'''
+    return Vect3d(U.y*V.z - U.z*V.y, U.z*V.x - U.x*V.z, U.x*V.y - U.y*V.x)
+
+def Magnitude(vect):
+    '''Get the magnitude/length of a vector'''
+    return math.sqrt(vect.x**2+vect.y**2+vect.z**2)
+
+def Normalize(vect):
+    '''Normalize and vector'''
+    mag = Magnitude(vect)
+    return  Vect3d(vect.x/mag, vect.y/mag, vect.z/mag)
+
+def TransformPoint(vect, matrix):
+    '''Transform a vector by a matrix'''
+    transPoint = Vect3d()
+    transPoint.x = vect.x * matrix[0][0] + vect.y * matrix[1][0] + vect.z * matrix[2][0] + 1 * matrix[3][0]
+    transPoint.y = vect.x * matrix[0][1] + vect.y * matrix[1][1] + vect.z * matrix[2][1] + 1 * matrix[3][1]
+    transPoint.z = vect.x * matrix[0][2] + vect.y * matrix[1][2] + vect.z * matrix[2][2] + 1 * matrix[3][2]
+    return transPoint
+
+def MultiplyMatrix(matrix1, matrix2):
+    '''
+    Multiply two matrices
+    Based on http://code.google.com/p/gameobjects
+    '''
+    m1_0,  m1_1,  m1_2,  m1_3 = matrix1[0]
+    m1_4,  m1_5,  m1_6,  m1_7 = matrix1[1]
+    m1_8,  m1_9,  m1_10, m1_11 = matrix1[2]
+    m1_12, m1_13, m1_14, m1_15 = matrix1[3]
+        
+    m2_0,  m2_1,  m2_2,  m2_3 = matrix2[0]
+    m2_4,  m2_5,  m2_6,  m2_7 = matrix2[1]
+    m2_8,  m2_9,  m2_10, m2_11 = matrix2[2]
+    m2_12, m2_13, m2_14, m2_15 = matrix2[3]
+                
+    return ((m2_0 * m1_0 + m2_1 * m1_4 + m2_2 * m1_8 + m2_3 * m1_12,
+        m2_0 * m1_1 + m2_1 * m1_5 + m2_2 * m1_9 + m2_3 * m1_13,
+        m2_0 * m1_2 + m2_1 * m1_6 + m2_2 * m1_10 + m2_3 * m1_14,
+        m2_0 * m1_3 + m2_1 * m1_7 + m2_2 * m1_11 + m2_3 * m1_15,),
+           
+        (m2_4 * m1_0 + m2_5 * m1_4 + m2_6 * m1_8 + m2_7 * m1_12,
+        m2_4 * m1_1 + m2_5 * m1_5 + m2_6 * m1_9 + m2_7 * m1_13,
+        m2_4 * m1_2 + m2_5 * m1_6 + m2_6 * m1_10 + m2_7 * m1_14,
+        m2_4 * m1_3 + m2_5 * m1_7 + m2_6 * m1_11 + m2_7 * m1_15,),
+           
+        (m2_8 * m1_0 + m2_9 * m1_4 + m2_10 * m1_8 + m2_11 * m1_12,
+        m2_8 * m1_1 + m2_9 * m1_5 + m2_10 * m1_9 + m2_11 * m1_13,
+        m2_8 * m1_2 + m2_9 * m1_6 + m2_10 * m1_10 + m2_11 * m1_14,
+        m2_8 * m1_3 + m2_9 * m1_7 + m2_10 * m1_11 + m2_11 * m1_15,),
+           
+        (m2_12 * m1_0 + m2_13 * m1_4 + m2_14 * m1_8 + m2_15 * m1_12,
+        m2_12 * m1_1 + m2_13 * m1_5 + m2_14 * m1_9 + m2_15 * m1_13,
+        m2_12 * m1_2 + m2_13 * m1_6 + m2_14 * m1_10 + m2_15 * m1_14,
+        m2_12 * m1_3 + m2_13 * m1_7 + m2_14 * m1_11 + m2_15 * m1_15,),
+    )
+
+_deg2rad = (math.pi/180)
+_yRotMatrix = (
+    (0.0, 0.0, -1.0, 0.0), 
+    (0.0, 1.0, 0.0, 0.0), 
+    (1.0, 0.0, 0.0, 0.0), 
+    (0.0, 0.0, 0.0, 1.0),
+)
+def VertRing(radius, sides, matrix):
+    '''Get a ring of points transformed into the matrix space'''
+    faces = []
+    sideRad = _deg2rad*(360/sides)
+    rotMatrix = MultiplyMatrix(matrix, _yRotMatrix)
+    for i in range(sides):
+        degInRad = i*sideRad
+        origPoint = Vect3d()
+        origPoint.x = radius*math.cos(degInRad)
+        origPoint.y = radius*math.sin(degInRad)
+        
+        transPoint = TransformPoint(origPoint, rotMatrix)
+            
+        faces.append((transPoint.x, transPoint.y, transPoint.z))
+        
+    return faces
