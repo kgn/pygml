@@ -1,4 +1,4 @@
-from Math import Point, Color, Vect3d
+from Math import *
 from Data import *
 
 class Brush(Data):
@@ -130,7 +130,57 @@ class Stroke(object):
         '''Add a point to the stroke'''
         self.__points.append(Point(x, y, z, time))
         
-    def iterPoints(self):
+    def iterPoints(self, rotZ=True):
         '''Iterate over the points in the stroke'''
         for point in self.__points:
-            yield point
+            if rotZ:
+                newVect = ZupToYup(point)
+                yield Point(newVect.x, newVect.y, newVect.x, point.time)
+            else:
+                yield point
+            
+    def iterRings(self, radius=0.01, sides=6, zScale=0.001, rotZ=True):    
+        previousPoint = None
+        for point in self.iterPoints(rotZ):
+            if not previousPoint:
+                previousPoint = point
+                continue
+               
+            #TODO: vary the width based on the draw speed 
+            timeDelta = point.time-previousPoint.time
+            newRadius = radius-timeDelta
+            newRadius = radius         
+                
+            #TODO: zScale does not work with rotating from z to y up
+            dirction = Vect3d(point.x-previousPoint.x, point.y-previousPoint.y, 0)
+            offZ = Vect3d(previousPoint.x, previousPoint.y, 1)
+            cross = CrossProduct(offZ, dirction)
+            
+            normPoint = Normalize(Vect3d(point.x, point.y, point.z*zScale))
+            normOffZ = Normalize(offZ)
+            normCross = Normalize(cross)
+            
+            matrix = (
+                (normPoint.x, normPoint.y, normPoint.z, 0),
+                (normCross.x, normCross.y, normCross.z, 0),
+                (normOffZ.x, normOffZ.y, normOffZ.z, 0),
+                (previousPoint.x, previousPoint.y, previousPoint.z*zScale, 1),
+            )
+            
+            previousPoint = point
+            
+            yield VertRing(newRadius, sides, matrix)
+            
+    def iterPolys(self, radius=0.01, sides=6, zScale=0.001, rotZ=True):         
+        previousRing = None
+        for ring in self.iterRings(radius, sides, zScale, rotZ):
+            if not previousRing:
+                previousRing = ring
+                continue
+            
+            for poly in IterPolysInRing(previousRing, ring):
+                yield poly
+                
+            previousRing = ring
+                
+            

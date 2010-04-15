@@ -1,3 +1,4 @@
+import math
 from xml.etree import ElementTree
 
 class MathBase(object):
@@ -48,6 +49,9 @@ class Vect3d(MathBase):
             ('y',self.y),
             ('z',self.z),
         )
+     
+    def asArray(self):
+        return (self.x, self.y, self.z)
      
     def __str__(self):
         return '<%s(%.2f, %.2f, %.2f)>' % (self.__class__.__name__, self.x, self.y, self.z)
@@ -108,6 +112,19 @@ class Point(MathBase):
         for value in values:
             returnStr += '%.2f, ' % value
         return returnStr.rstrip(', ')+')>'
+
+class Polygon(object):
+    def __init__(self, verts=None):
+        self.verts = verts
+     
+    def vertsArray(self):
+        verts = []
+        for vert in self.verts:
+            verts.append(vert.asArray())
+        return verts
+     
+    def __str__(self):
+        return '<%s(%s)>' % (self.__class__.__name__, self.verts)
 
 #functions
 def CrossProduct(U, V):
@@ -174,6 +191,16 @@ _yRotMatrix = (
     (1.0, 0.0, 0.0, 0.0), 
     (0.0, 0.0, 0.0, 1.0),
 )
+_zRotMatrix = (
+    (0.0, 1.0, 0.0, 0.0), 
+    (-1.0, 0.0, 0.0, 0.0), 
+    (0.0, 0.0, 1.0, 0.0), 
+    (0.0, 0.0, 0.0, 1.0),
+)
+
+def ZupToYup(vert):
+    return TransformPoint(vert, _zRotMatrix)
+    
 def VertRing(radius, sides, matrix):
     '''Get a ring of points transformed into the matrix space'''
     faces = []
@@ -185,8 +212,19 @@ def VertRing(radius, sides, matrix):
         origPoint.x = radius*math.cos(degInRad)
         origPoint.y = radius*math.sin(degInRad)
         
-        transPoint = TransformPoint(origPoint, rotMatrix)
-            
-        faces.append((transPoint.x, transPoint.y, transPoint.z))
+        faces.append(TransformPoint(origPoint, rotMatrix))
         
     return faces
+
+def IterPolysInRing(ring1, ring2):
+    previousVert1 = ring1[-1]
+    previousVert2 = ring2[-1]
+    for vert1, vert2 in zip(ring1, ring2):
+        vert = (
+            previousVert1, vert1,
+            vert2, previousVert2,
+        )
+        previousVert1 = vert1
+        previousVert2 = vert2
+        
+        yield Polygon(vert)
