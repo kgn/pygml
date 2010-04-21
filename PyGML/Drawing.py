@@ -145,42 +145,80 @@ class Stroke(object):
             if not previousPoint:
                 previousPoint = point
                 continue
-               
-            #TODO: vary the width based on the draw speed 
-            timeDelta = point.time-previousPoint.time
-            newRadius = radius-timeDelta
-            newRadius = radius         
-                
-            #TODO: zScale does not work with rotating from z to y up
-            dirction = Vect3d(point.x-previousPoint.x, point.y-previousPoint.y, 0)
-            offZ = Vect3d(previousPoint.x, previousPoint.y, 1)
-            cross = CrossProduct(offZ, dirction)
             
-            normPoint = Normalize(Vect3d(point.x, point.y, point.z*zScale))
-            normOffZ = Normalize(offZ)
-            normCross = Normalize(cross)
+            yield VertRing(previousPoint, point, radius, sides, zScale)
             
-            matrix = (
-                (normPoint.x, normPoint.y, normPoint.z, 0),
-                (normCross.x, normCross.y, normCross.z, 0),
-                (normOffZ.x, normOffZ.y, normOffZ.z, 0),
-                (previousPoint.x, previousPoint.y, previousPoint.z*zScale, 1),
-            )
-            
+            lastPoint = previousPoint
             previousPoint = point
             
-            yield VertRing(newRadius, sides, matrix)
+        yield VertRing(lastPoint, previousPoint, radius, sides, zScale)
+        
+    def getPolyData(self, radius=0.01, sides=6, zScale=0.001, rotZ=True):
+        indices = []
+        vertices = []
+        indexOffset = 0
+        for ring in self.iterRings(radius, sides, zScale, rotZ):
+            startIndex = sides*indexOffset
+            initialIndicies = [startIndex, startIndex+1, sides+startIndex, sides+startIndex+1]
             
-    def iterPolys(self, radius=0.01, sides=6, zScale=0.001, rotZ=True):         
+            count = 0
+            for vert in ring:
+                vertices.append(vert)
+                
+                #Wrap the verts
+                newIndex1 = initialIndicies[1]+count
+                newIndex2 = initialIndicies[3]+count
+                if newIndex2 == sides*(indexOffset+2):
+                    newIndex1 = newIndex1-sides
+                    newIndex2 = newIndex2-sides
+                    
+                indices.append((
+                    initialIndicies[0]+count, newIndex1,
+                    newIndex2, initialIndicies[2]+count
+                ))
+                
+                count += 1
+            
+            indexOffset += 1
+            
+        return (indices[:-sides], vertices)
+                
+        indexOffset = 0
         previousRing = None
+        indices = []
+        vertices = []
         for ring in self.iterRings(radius, sides, zScale, rotZ):
             if not previousRing:
                 previousRing = ring
                 continue
             
-            for poly in IterPolysInRing(previousRing, ring):
-                yield poly
-                
-            previousRing = ring
-                
+            startIndex = sides*indexOffset
+            initialIndicies = [startIndex, startIndex+1, sides+startIndex, sides+startIndex+1]
+            previousVert1 = previousRing[-1]
+            previousVert2 = ring[-1]
             
+            count = 0
+            for vert1, vert2 in zip(previousRing, ring):
+                #Wrap the verts
+                newIndex1 = initialIndicies[1]+count
+                newIndex2 = initialIndicies[3]+count
+                if newIndex2 == sides*(indexOffset+2):
+                    newIndex1 = newIndex1-sides
+                    newIndex2 = newIndex2-sides
+                    
+                indices.append((
+                    initialIndicies[0]+count, newIndex1,
+                    newIndex2, initialIndicies[2]+count
+                ))
+                vertices.append((
+                    previousVert1, previousVert2,
+                    vert1, vert2,
+                ))
+                previousVert1 = vert1
+                previousVert2 = vert2
+                count += 1
+                
+            indexOffset += 1
+            previousRing = ring
+            
+        return (indices[:-1], vertices)

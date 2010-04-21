@@ -113,19 +113,6 @@ class Point(MathBase):
             returnStr += '%.2f, ' % value
         return returnStr.rstrip(', ')+')>'
 
-class Polygon(object):
-    def __init__(self, verts=None):
-        self.verts = verts
-     
-    def vertsArray(self):
-        verts = []
-        for vert in self.verts:
-            verts.append(vert.asArray())
-        return verts
-     
-    def __str__(self):
-        return '<%s(%s)>' % (self.__class__.__name__, self.verts)
-
 #functions
 def CrossProduct(U, V):
     '''Get the cross product of two vectors'''
@@ -138,6 +125,8 @@ def Magnitude(vect):
 def Normalize(vect):
     '''Normalize and vector'''
     mag = Magnitude(vect)
+    if mag == 0:
+        return Vect3d()
     return  Vect3d(vect.x/mag, vect.y/mag, vect.z/mag)
 
 def TransformPoint(vect, matrix):
@@ -201,30 +190,38 @@ _zRotMatrix = (
 def ZupToYup(vert):
     return TransformPoint(vert, _zRotMatrix)
     
-def VertRing(radius, sides, matrix):
-    '''Get a ring of points transformed into the matrix space'''
-    faces = []
+def VertRing(point1, point2, radius, sides, zScale):
+    '''Get a ring of points transformed into the matrix space derived from two points'''
+    #TODO: vary the width based on the draw speed 
+    #timeDelta = point2.time-point1.time
+    #newRadius = radius-timeDelta
+    newRadius = radius         
+        
+    #TODO: zScale does not work with rotating from z to y up
+    direction = Vect3d(point2.x-point1.x, point2.y-point1.y, 0)
+    offZ = Vect3d(point1.x, point1.y, 1)
+    cross = CrossProduct(offZ, direction)
+    
+    normPoint = Normalize(Vect3d(point1.x, point1.y, point1.z*zScale))
+    normOffZ = Normalize(offZ)
+    normCross = Normalize(cross)
+    
+    matrix = (
+        (normPoint.x, normPoint.y, normPoint.z, 0),
+        (normCross.x, normCross.y, normCross.z, 0),
+        (normOffZ.x, normOffZ.y, normOffZ.z, 0),
+        (point1.x, point1.y, point1.z*zScale, 1),
+    )
+            
+    verts = []
     sideRad = _deg2rad*(360/sides)
     rotMatrix = MultiplyMatrix(matrix, _yRotMatrix)
     for i in range(sides):
         degInRad = i*sideRad
         origPoint = Vect3d()
-        origPoint.x = radius*math.cos(degInRad)
-        origPoint.y = radius*math.sin(degInRad)
+        origPoint.x = newRadius*math.cos(degInRad)
+        origPoint.y = newRadius*math.sin(degInRad)
         
-        faces.append(TransformPoint(origPoint, rotMatrix))
+        verts.append(TransformPoint(origPoint, rotMatrix))
         
-    return faces
-
-def IterPolysInRing(ring1, ring2):
-    previousVert1 = ring1[-1]
-    previousVert2 = ring2[-1]
-    for vert1, vert2 in zip(ring1, ring2):
-        vert = (
-            previousVert1, vert1,
-            vert2, previousVert2,
-        )
-        previousVert1 = vert1
-        previousVert2 = vert2
-        
-        yield Polygon(vert)
+    return verts
