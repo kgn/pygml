@@ -4,9 +4,9 @@ Features:
 * Create/edit GML through the python API
 * Save GML
 
-Check out [libdev.py](https://github.com/InScopeApps/pygml/blob/master/libdev.py) for examples of how the API works.
+Check out [libdev.py](https://github.com/kgn/pygml/blob/master/libdev.py) for examples of how the API works.
 
-![](https://github.com/InScopeApps/pygml/raw/master/gml-file.png)
+![](https://github.com/kgn/pygml/raw/master/gml-file.png)
 
 * [About GML](http://fffff.at/gml-week-graffiti-markup-language)
 * [GML Spec](http://fffff.at/gml)
